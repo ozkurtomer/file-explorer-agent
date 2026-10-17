@@ -1,0 +1,3 @@
+Bu dosyadaki kişiler eğitim örneği için kurgusaldır.
+File Explorer Agent projesini Deniz Kaya oluşturmuştur.
+Projenin testlerini Ece Yılmaz yürütmektedir.

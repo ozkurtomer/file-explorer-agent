@@ -1,0 +1,3 @@
+Toplantı tarihi: 17 Ekim 2026
+Karar: Dosya listeleme ve okuma araçlarıyla ilk prototip hazırlanacak.
+Sonraki toplantıda hata durumları değerlendirilecek.

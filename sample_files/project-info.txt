@@ -1,0 +1,2 @@
+Project: File Explorer Agent
+Purpose: Learn how a language model uses tools.
