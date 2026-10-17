@@ -45,6 +45,15 @@ def execute_tool(tool_name: str, arguments: dict) -> dict:
         if not isinstance(arguments, dict):
             raise ValueError("Tool arguments must be an object.")
 
+        if tool_name == "count_files":
+            if arguments:
+                raise ValueError("count_files does not accept arguments.")
+
+            return {
+                "ok": True,
+                "content": str(count_files()),
+            }
+        
         if tool_name == "list_files":
             if arguments:
                 raise ValueError("list_files does not accept arguments.")
@@ -81,7 +90,13 @@ def execute_tool(tool_name: str, arguments: dict) -> dict:
     except (OSError, ValueError) as error:
         return {"ok": False, "content": f"Tool error: {error}"}
 
+def count_files()->int:
+    """Return the number of available files."""
+    files = list_files()
+    return len(files)
+
 def main() -> None:
+
     question = input("Sorun: ").strip()
 
     if not question:
@@ -93,7 +108,8 @@ def main() -> None:
             "role": "system",
             "content": (
                 "Soruları belirlenen klasördeki dosyaları kullanarak yanıtla. "
-                "Önce dosyaları listele, ardından ilgili dosyaları oku. "
+                "Dosya sayısı soruluyorsa count_files aracını kullan. "
+                "Dosya içeriği soruluyorsa önce dosyaları listele, ardından ilgili dosyaları oku. "
                 "Dosya adlarını list_files aracının döndürdüğü şekilde kullan. "
                 "Dosya okumak için ayrıca kullanıcı onayı isteme. "
                 "Dosyayı okuyacağını söylemek yerine read_file aracını çağır. "
@@ -110,7 +126,7 @@ def main() -> None:
         },
     ]
 
-    has_read_file = False
+    has_answer_evidence = False
 
     for round_number in range(1, MAX_ROUNDS + 1):
         print(f"\n--- Round {round_number} ---")
@@ -118,23 +134,22 @@ def main() -> None:
         response = chat(
             model=MODEL,
             messages=messages,
-            tools=[list_files, read_file],
+            tools=[list_files, read_file, count_files],
         )
 
         messages.append(response.message)
 
         if not response.message.tool_calls:
-            if not has_read_file:
+            if not has_answer_evidence:
                 print("Answer rejected: no file has been read.")
 
                 messages.append(
                     {
                         "role": "user",
                         "content": (
-                            "Henüz hiçbir dosyayı başarıyla okumadın. "
-                            "Dosyayı okuyacağını söylemek araç çağrısı değildir. "
-                            "Soruyu cevaplamak için ilgili dosyayı "
-                            "read_file aracıyla gerçekten oku."
+                            "Henüz cevap için gerekli araç sonucunu almadın. "
+                            "Dosya sayısı soruluyorsa count_files aracını kullan. "
+                            "Dosya içeriği soruluyorsa ilgili dosyayı read_file ile oku "
                         ),
                     }
                 )
@@ -152,8 +167,8 @@ def main() -> None:
 
             result = execute_tool(tool_name, arguments)
 
-            if tool_name == "read_file" and result["ok"]:
-                has_read_file = True
+            if tool_name in ("read_file", "count_files") and result["ok"]:
+                has_answer_evidence = True
 
             print("Tool result:", result["content"])
 
