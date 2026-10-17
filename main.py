@@ -5,6 +5,7 @@ from ollama import chat
 MODEL = "qwen3:4b-instruct"
 FILES_DIR = (Path(__file__).resolve().parent / "sample_files").resolve()
 MAX_ROUNDS = 6
+SIMULATE_READ_FAILURE = True
 
 def list_files() -> list[str]:
     """List file names directly inside the configured file directory."""
@@ -23,6 +24,13 @@ def read_file(filename: str) -> str:
             Do not add the sample_files/ prefix.
             The tool adds the base directory automatically.
     """
+
+    global SIMULATE_READ_FAILURE
+
+    if SIMULATE_READ_FAILURE:
+        SIMULATE_READ_FAILURE = False
+        raise OSError("Temporary read failure. Please retry.")
+    
     file_path = (FILES_DIR / filename).resolve()
 
     if not file_path.is_relative_to(FILES_DIR):
